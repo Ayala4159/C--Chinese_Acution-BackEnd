@@ -66,9 +66,16 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPurchaseService, PurchaseService>();
 builder.Services.AddScoped<IEmailService,EmailService >();
-
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowAngular", policy => {
+        policy.WithOrigins("http://localhost:4200")
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["SecretKey"] ?? throw new InvalidOperationException("JWT SecretKey is not configured");
+
 
 
 builder.Services.AddAuthentication(options =>
@@ -113,7 +120,7 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 var app = builder.Build();
-
+app.UseCors("AllowAngular");
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
