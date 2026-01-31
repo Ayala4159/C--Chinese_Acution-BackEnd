@@ -127,6 +127,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 Log.Information("~~~ The application us running: "+DateTime.Now+" ~~~");
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

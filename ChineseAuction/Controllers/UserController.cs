@@ -93,10 +93,19 @@ namespace ChineseAuction.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> LoginAsync([FromBody] loginRequestDto userDto)
         {
-            _logger.LogInformation("Starting user authentication for email: {Email}", userDto.Email);
-            var authResponse = await _userSevice.AuthenticateAsync(userDto);
-            _logger.LogInformation("Completed user authentication for email: {Email}", userDto.Email);
-            return authResponse == null ? Unauthorized() : Ok(authResponse);
+            try
+            {
+                _logger.LogInformation("Starting user authentication for email: {Email}", userDto.Email);
+                var authResponse = await _userSevice.AuthenticateAsync(userDto);
+                _logger.LogInformation("Completed user authentication for email: {Email}", userDto.Email);
+                return authResponse == null ? Unauthorized() : Ok(authResponse);
+            }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error during authorization");
+                return BadRequest(ex.Message);
+            }
+
         }
 
 
