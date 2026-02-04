@@ -40,7 +40,7 @@ namespace ChineseAuction.Controllers
         }
 
         // add new package
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "manager")]
         [HttpPost]
         public async Task<IActionResult> AddPackage([FromBody] CreatePackageDto createPackageDto)
         {
@@ -58,7 +58,7 @@ namespace ChineseAuction.Controllers
             }
         }
         // update package
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "manager")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdatePackage(int id, [FromBody] CreatePackageDto updatePackageDto)
         {
@@ -77,7 +77,7 @@ namespace ChineseAuction.Controllers
             }
         }
         // delete package
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "manager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePackage(int id)
         {
