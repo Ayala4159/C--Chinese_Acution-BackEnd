@@ -19,7 +19,7 @@ namespace ChineseAuction.Controllers
         }
 
         // Get all donors
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "manager")]
         [HttpGet]
         public async Task<IActionResult> GetAllDonors()
         {
@@ -30,7 +30,7 @@ namespace ChineseAuction.Controllers
         }
 
         // get donor by id
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "manager")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetDonorById(int id)
         {
@@ -43,11 +43,20 @@ namespace ChineseAuction.Controllers
 
         // Add new donor
         [HttpPost]
-        public async Task<IActionResult> AddDonor([FromBody] CreateDonorDto createDonorDto)
+        public async Task<IActionResult> AddDonor([FromBody] CreateDonorDto createDonorDto, IFormFile imageFile)
         {
             _logger.LogInformation("Starting to add a new donor...");
             try
             {
+                if (imageFile == null || imageFile.Length == 0)
+                    return BadRequest("לא נבחרה תמונה");
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/companies", fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await imageFile.CopyToAsync(stream);
+                }
+                createDonorDto.Company_picture = fileName;
                 var createdDonor = await _donorService.AddDonorAsync(createDonorDto);
                 _logger.LogInformation("Added a new donor successfully with id: {Id}", createdDonor.Id);
                 return CreatedAtAction(nameof(GetDonorById), new { id = createdDonor.Id }, createdDonor);
@@ -60,11 +69,33 @@ namespace ChineseAuction.Controllers
         }
         // Update donor
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateDonor(int id, [FromBody] CreateDonorDto updateDonorDto)
+        public async Task<IActionResult> UpdateDonor(int id, [FromBody] CreateDonorDto updateDonorDto ,IFormFile? imageFile)
         {
             _logger.LogInformation("Starting to update donor with id: {Id}", id);
             try
             {
+                var existingDonor = await _donorService.GetDonorByIdAsync(id);
+                if (existingDonor == null) return NotFound();
+                if (imageFile != null && imageFile.Length > 0)
+                {
+                    var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/companies", existingDonor.Company_picture);
+                    if (System.IO.File.Exists(oldFilePath))
+                    {
+                        System.IO.File.Delete(oldFilePath);
+                    }
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                    var newFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/companies", fileName);
+
+                    using (var stream = new FileStream(newFilePath, FileMode.Create))
+                    {
+                        await imageFile.CopyToAsync(stream);
+                    }
+                    updateDonorDto.Company_picture = fileName;
+                }
+                else
+                {
+                    updateDonorDto.Company_picture = existingDonor.Company_picture;
+                }
                 var updatedDonor = await _donorService.UpdateDonorAsync(id, updateDonorDto);
                 if (updatedDonor == null) return NotFound("The id:" + id + " ,did not found🤚");
                 _logger.LogInformation("Updated donor with id: {Id} successfully", id);

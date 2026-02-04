@@ -27,6 +27,7 @@
 	
 	<ItemGroup>
 	  <Folder Include="Logs\" />
+	  <Folder Include="wwwroot\images\conpanies\" />
 	</ItemGroup>
 
 </Project>

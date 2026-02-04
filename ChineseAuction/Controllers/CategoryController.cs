@@ -59,7 +59,6 @@ namespace ChineseAuction.Controllers
                 {
                     await imageFile.CopyToAsync(stream);
                 }
-
                 var newCategory = new CategoryDto { Name = createCategoryDto.Name, picture = fileName };
                 GetCategoryDto category = await _categoryService.AddCategoryAsync(newCategory);
                 _logger.LogInformation("Added new category successfully with id {Id}.", category.Id);
