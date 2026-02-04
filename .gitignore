@@ -487,6 +487,7 @@ $RECYCLE.BIN/
 [Oo]bj/
 .vs/
 *.user
+*/wwwroot/images/
 
 ChineseAuction/appsettings.Development.json
 ChineseAuction/appsettings.json
