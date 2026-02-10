@@ -14,7 +14,7 @@ namespace ChineseAuction.Controllers
     {
         private readonly IGiftService _giftService;
         private readonly ILogger<GiftController> _logger;
-        public GiftController(IGiftService giftService,ILogger<GiftController> logger)
+        public GiftController(IGiftService giftService, ILogger<GiftController> logger)
         {
             _giftService = giftService;
             _logger = logger;
@@ -23,20 +23,20 @@ namespace ChineseAuction.Controllers
         // Get all approved gifts
         [HttpGet]
         public async Task<IActionResult> GetAllApprovedGiftsAsync()
-        { 
+        {
             _logger.LogInformation("Starting to get all approved gifts");
-            var gifts =await _giftService.GetAllApprovedGiftsAsync();
+            var gifts = await _giftService.GetAllApprovedGiftsAsync();
             _logger.LogInformation("Got all approved gifts");
             return Ok(gifts);
         }
 
         // Get all unapproved gifts
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "manager")]
         [HttpGet("Unapproved")]
         public async Task<IActionResult> GetNoneUnapprovedGifts()
         {
             _logger.LogInformation("Starting to get all unapproved gifts");
-            var gifts =await _giftService.GetAllUnapprovedGiftsAsync();
+            var gifts = await _giftService.GetAllUnapprovedGiftsAsync();
             _logger.LogInformation("Got all unapproved gifts");
             return Ok(gifts);
 
@@ -47,21 +47,28 @@ namespace ChineseAuction.Controllers
         public async Task<IActionResult> GetGiftById(int id)
         {
             _logger.LogInformation("Starting to get gift by id: {GiftId}", id);
-            var gift =await _giftService.GetGiftByIdAsync(id);
+            var gift = await _giftService.GetGiftByIdAsync(id);
             _logger.LogInformation("Got gift by id: {GiftId}", id);
             if (gift == null) return NotFound("The id:" + id + " ,did not found🤚");
             return Ok(gift);
         }
 
         // Add new gift
-        [Authorize(Roles = "Manager")]//donor
+        [Authorize(Roles = "manager")]//donor
         [HttpPost]
-        public async Task<IActionResult> AddGift([FromBody] CreateGiftDto giftDto)
+        public async Task<IActionResult> AddGift([FromForm] CreateGiftDto giftDto, IFormFile imageFile)
         {
             _logger.LogInformation("Starting to add a new gift");
             try
             {
-                var createdGift =await _giftService.AddGiftAsync(giftDto);
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/gifts", fileName);
+                giftDto.Picture = fileName;
+                var createdGift = await _giftService.AddGiftAsync(giftDto);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await imageFile.CopyToAsync(stream);
+                }
                 _logger.LogInformation("Added a new gift with id: {GiftId}", createdGift.Id);
                 return CreatedAtAction(nameof(GetGiftById), new { id = createdGift.Id }, createdGift);
             }
@@ -73,14 +80,28 @@ namespace ChineseAuction.Controllers
         }
 
         // Update gift
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "manager")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateGift(int id, [FromBody] CreateGiftDto giftDto)
+        public async Task<IActionResult> UpdateGift(int id, [FromForm] CreateGiftDto giftDto, IFormFile imageFile)
         {
             _logger.LogInformation("Starting to update gift with id: {GiftId}", id);
             try
             {
-                var updatedGift =await _giftService.UpdateGiftAsync(id, giftDto);
+                var existingGift = await _giftService.GetGiftByIdAsync(id);
+                if (existingGift == null) return NotFound();
+                var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/gifts", giftDto.Picture);
+                if (System.IO.File.Exists(oldFilePath))
+                {
+                    System.IO.File.Delete(oldFilePath);
+                }
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+                var newFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/gifts", fileName);
+                using (var stream = new FileStream(newFilePath, FileMode.Create))
+                {
+                    await imageFile.CopyToAsync(stream);
+                }
+                giftDto.Picture = fileName;
+                var updatedGift = await _giftService.UpdateGiftAsync(id, giftDto);
                 if (updatedGift == null) return NotFound("The id:" + id + " ,did not found🤚");
                 _logger.LogInformation("Updated gift with id: {GiftId}", id);
                 return Ok(updatedGift);
@@ -100,7 +121,7 @@ namespace ChineseAuction.Controllers
             _logger.LogInformation("Starting to update purchases quantity for gift with id: {GiftId}", giftId);
             try
             {
-                var updatedGift =await _giftService.UpdateGiftPurchasesQuantityAsync(giftId);
+                var updatedGift = await _giftService.UpdateGiftPurchasesQuantityAsync(giftId);
                 if (updatedGift == null) return NotFound("The id:" + giftId + " ,did not found🤚");
                 _logger.LogInformation("Updated purchases quantity for gift with id: {GiftId}", giftId);
                 return Ok(updatedGift);
@@ -113,14 +134,14 @@ namespace ChineseAuction.Controllers
         }
 
         // Delete gift
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "manager")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteGift(int id)
         {
             _logger.LogInformation("Starting to delete gift with id: {GiftId}", id);
             try
             {
-                var result =await _giftService.DeleteGiftAsync(id);
+                var result = await _giftService.DeleteGiftAsync(id);
                 if (!result) return NotFound("The id:" + id + " ,did not found🤚");
                 _logger.LogInformation("Deleted gift with id: {GiftId}", id);
                 return Ok("Gift with id:" + id + " has been deleted successfully🗑️");
@@ -132,14 +153,14 @@ namespace ChineseAuction.Controllers
             }
         }
         // Update approval status
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "manager")]
         [HttpPut("approve")]
         public async Task<IActionResult> UpdateApprovalStatus([FromBody] ApproveGiftDto gift)
         {
             _logger.LogInformation("Starting to update approval status for gift with id: {GiftId}", gift.Id);
             try
             {
-                var result =await _giftService.UpdateApprovalStatusAsync(gift);
+                var result = await _giftService.UpdateApprovalStatusAsync(gift);
                 if (!result) return NotFound("The id:" + gift.Id + " ,did not found🤚");
                 _logger.LogInformation("Updated approval status for gift with id: {GiftId}", gift.Id);
                 return Ok("Gift with id:" + gift.Id + " approval status has been updated successfully✅");

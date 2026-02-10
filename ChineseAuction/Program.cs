@@ -52,7 +52,7 @@ builder.Services.AddDbContext<ChinesActionDbContext>(options => options.UseSqlSe
 
 //repositories
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<IPackageRepository,PackageRepository>();
+builder.Services.AddScoped<IPackageRepository, PackageRepository>();
 builder.Services.AddScoped<IDonorRpository, DonorRpository>();
 builder.Services.AddScoped<IGiftRepository, GiftRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -65,9 +65,11 @@ builder.Services.AddScoped<IGiftService, GiftService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IPurchaseService, PurchaseService>();
-builder.Services.AddScoped<IEmailService,EmailService >();
-builder.Services.AddCors(options => {
-    options.AddPolicy("AllowAngular", policy => {
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
         policy.WithOrigins("http://localhost:4200")
               .AllowAnyMethod()
               .AllowAnyHeader();
@@ -120,6 +122,12 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
+
 var app = builder.Build();
 app.UseCors("AllowAngular");
 if (app.Environment.IsDevelopment())
@@ -127,7 +135,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-Log.Information("~~~ The application us running: "+DateTime.Now+" ~~~");
+Log.Information("~~~ The application us running: " + DateTime.Now + " ~~~");
 app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseAuthentication();

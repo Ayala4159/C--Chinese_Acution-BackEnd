@@ -49,7 +49,7 @@ namespace ChineseAuction.Services
                 issuer: issuer,
                 audience: audience,
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(expiryMinutes),
+                expires: DateTime.UtcNow.AddYears(100),
                 signingCredentials: credentials
             );
 

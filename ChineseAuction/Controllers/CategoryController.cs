@@ -120,17 +120,12 @@ namespace ChineseAuction.Controllers
             _logger.LogInformation("Starting to delete category with id {Id}...", id);
             try
             {
-
-
                 var category = await _categoryService.GetCategoryByIdAsync(id);
                 if (category == null) return NotFound("category with the given ID was not found");
                 var isDeleted = await _categoryService.DeleteCategoryAsync(id);
                 if (isDeleted)
                 {
-
                     var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/categories", category.picture);
-
-
                     if (System.IO.File.Exists(filePath))
                     {
                         System.IO.File.Delete(filePath);

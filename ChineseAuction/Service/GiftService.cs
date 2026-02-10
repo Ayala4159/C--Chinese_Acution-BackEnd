@@ -60,7 +60,7 @@ namespace ChineseAuction.Service
                 _logger.LogWarning("Gift with id {GiftId} not found for update.", id);
                 return null;
             }
-            var gift = _mapper.Map<Gift>(giftDto);
+            _mapper.Map(giftDto, existingGift);
             existingGift.Id = id;
             var updatedGift = await _giftRepository.UpdateGiftAsync(existingGift);
             if (updatedGift == null)

@@ -27,7 +27,8 @@
 	
 	<ItemGroup>
 	  <Folder Include="Logs\" />
-	  <Folder Include="wwwroot\images\conpanies\" />
+	  <Folder Include="wwwroot\images\conpanies\NewFolder\" />
+	  <Folder Include="wwwroot\images\gifts\" />
 	</ItemGroup>
 
 </Project>

@@ -40,6 +40,8 @@ namespace ChineseAuction.Dtos
         public string? Company_picture { get; set; }
         [Required]
         public bool Is_publish { get; set; } = false;
+        [Required]
+        public ICollection<Gift> Donations { get; set; } = new List<Gift>();
     }
     public class UserGetDonorDto
     {
