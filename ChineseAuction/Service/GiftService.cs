@@ -135,6 +135,11 @@ namespace ChineseAuction.Service
 
             return _mapper.Map<IEnumerable<GetPurchaseDto>>(gifts);
         }
-
+        //get gift by category
+        public async Task<IEnumerable<GetGiftDto?>> GetGiftByCategoryAsync(int catId)
+        {
+            var gifts = await _giftRepository.GetGiftsByCategoryAsync(catId);
+            return _mapper.Map<IEnumerable<GetGiftDto>>(gifts);
+        }
     }
 }

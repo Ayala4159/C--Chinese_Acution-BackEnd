@@ -14,5 +14,6 @@ namespace ChineseAuction.Service
         Task<bool> UpdateApprovalStatusAsync(ApproveGiftDto gift);
         Task<IEnumerable<GetGiftDto>> GetFilteredGiftsAsync(string? giftName, string? donorName, int? minPurchases);
         Task<IEnumerable<GetPurchaseDto>> GetSortedGiftAsync(string sortBy);
+        Task<IEnumerable<GetGiftDto?>> GetGiftByCategoryAsync(int catId);
     }
 }

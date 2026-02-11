@@ -207,5 +207,15 @@ namespace ChineseAuction.Controllers
                 return BadRequest("Internal server error occurred");
             }
         }
+        // Get gifts by category
+        [HttpGet("category/{catId}")]
+        
+        public async Task<IActionResult> GetGiftByCategory(int catId)
+        {
+            _logger.LogInformation("Starting to get gift by Category: {GiftId}", catId);
+            var gifts = await _giftService.GetGiftByCategoryAsync(catId);
+            _logger.LogInformation("Got gift by id: {GiftId}", catId);
+            return Ok(gifts);
+        }
     }
 }
