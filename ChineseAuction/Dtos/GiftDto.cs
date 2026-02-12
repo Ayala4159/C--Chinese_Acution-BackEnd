@@ -17,9 +17,9 @@ namespace ChineseAuction.Dtos
         [Required]
         public int Value { get; set; }
         [Required]
-        public int DonorId { get; set; }
+        public UserGetDonorDto? Donor { get; set; }
         [Required]
-        public int CategoryId { get; set; }
+        public GetCategoryDto? Category { get; set; }
         [Required]
         public bool Is_lottery { get; set; }
         [Required]

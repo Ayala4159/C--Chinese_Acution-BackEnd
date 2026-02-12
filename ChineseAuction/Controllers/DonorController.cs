@@ -79,11 +79,16 @@ namespace ChineseAuction.Controllers
             {
                 var existingDonor = await _donorService.GetDonorByIdAsync(id);
                 if (existingDonor == null) return NotFound();
+
+                if (!string.IsNullOrEmpty(existingDonor.Company_picture))
+                {
                     var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/companies", existingDonor.Company_picture);
-                    if (System.IO.File.Exists(oldFilePath))
+                    if (System.IO.File.Exists(oldFilePath) && imageFile != null) // מוחקים רק אם באמת מעלים תמונה חדשה
                     {
                         System.IO.File.Delete(oldFilePath);
                     }
+                }
+
                 if (imageFile != null && imageFile.Length > 0)
                 {
                     var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
@@ -96,11 +101,12 @@ namespace ChineseAuction.Controllers
                 }
                 else
                 {
-                    updateDonorDto.Company_picture = null;
+                    updateDonorDto.Company_picture = existingDonor.Company_picture;
                 }
+
                 var updatedDonor = await _donorService.UpdateDonorAsync(id, updateDonorDto);
                 if (updatedDonor == null) return NotFound("The id:" + id + " ,did not found🤚");
-                _logger.LogInformation("Updated donor with id: {Id} successfully", id);
+
                 return Ok(updatedDonor);
             }
             catch (Exception ex)
