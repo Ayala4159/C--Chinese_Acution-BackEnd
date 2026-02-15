@@ -64,30 +64,6 @@ namespace Chinese_Auction.Controllers
 
         }
 
-        // update purchase
-        [Authorize]
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePurchase(int id, [FromBody] UpdatePurchaseDto purchaseDto)
-        {
-            if (!User.IsManager() && User.GetUserId() != id)
-            {
-                return Forbid();
-            }
-            _logger.LogInformation("Starting to update purchase with id: {Id}", id);
-            try
-            {
-                var updated = await _purchaseService.UpdatePurchaseAsync(id, purchaseDto);
-                _logger.LogInformation("Updated purchase with id: {Id} succesfully", id);
-                return updated == null ? NotFound() : Ok(updated);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while updating purchase with id: {Id}", id);
-                return BadRequest("Internal server error occurred");
-            }
-
-        }
-
         // get purchases by user id
         [Authorize]
         [HttpGet("user/{userId}")]
@@ -115,7 +91,7 @@ namespace Chinese_Auction.Controllers
         }
 
         // run lottery for a specific gift
-        //[Authorize(Roles = "Manager")]
+        [Authorize(Roles = "manager")]
         [HttpPost("lottery/{giftId}")]
         public async Task<IActionResult> RunLottery(int giftId)
         {

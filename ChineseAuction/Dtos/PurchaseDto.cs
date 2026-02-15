@@ -22,6 +22,8 @@ namespace ChineseAuction.Dtos
         [Required]
         public int PackageId { get; set; }
         [Required]
+        public int UserId { get; set; }
+        [Required]
         public string UniquePackageId { get; set; }=string.Empty;
     }
     public class UpdatePurchaseDto

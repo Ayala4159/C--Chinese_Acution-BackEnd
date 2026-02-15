@@ -13,6 +13,6 @@ namespace ChineseAuction.Models
         [Required]
         public int NumOfCards { get; set; }
         [Required]
-        public int Price { get; set; }
+        public int Price { get; set; } = 10;
     }
 }

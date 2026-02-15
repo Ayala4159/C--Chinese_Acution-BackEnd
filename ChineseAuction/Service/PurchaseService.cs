@@ -10,13 +10,17 @@ namespace ChineseAuction.Service
     public class PurchaseService : IPurchaseService
     {
         private readonly IPurchaseRepository _purchaseRepository;
+        private readonly IGiftRepository _giftRepository;
+        private readonly IDonorRpository _donorRepository;
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
         private readonly ILogger<PurchaseService> _logger;
         private readonly IUserRepository _userRepository;
-        public PurchaseService(IPurchaseRepository purchaseRepository, IMapper mapper, IEmailService emailService, ILogger<PurchaseService> logger, IUserRepository userRepository)
+        public PurchaseService(IPurchaseRepository purchaseRepository, IGiftRepository giftRepository, IDonorRpository donorRepository, IMapper mapper, IEmailService emailService, ILogger<PurchaseService> logger, IUserRepository userRepository)
         {
             _purchaseRepository = purchaseRepository;
+            _giftRepository = giftRepository;
+            _donorRepository = donorRepository;
             _mapper = mapper;
             _emailService = emailService;
             _logger = logger;
@@ -108,6 +112,12 @@ namespace ChineseAuction.Service
         // lottory winner
         public async Task<GetPurchaseDto?> GetWinnersByGiftIdAsync(int giftId)
         {
+            var existingWinner = await _purchaseRepository.GetWinnerByGiftIdAsync(giftId);
+            if (existingWinner != null)
+            {
+                _logger.LogInformation($"Gift {giftId} already has a winner: {existingWinner.Id}");
+                return _mapper.Map<GetPurchaseDto>(existingWinner);
+            }
             var winner = await _purchaseRepository.GetWinnerByGiftIdAsync(giftId);
             if (winner == null)
             {
@@ -141,18 +151,48 @@ namespace ChineseAuction.Service
         // send email to the winner
         private async Task SendNotificationEmail(GetPurchaseDto winner)
         {
-            var user = await _userRepository.GetUserByIdAsync(winner.Id);
-            if (user == null)
+            try
             {
-                _logger.LogWarning("User with ID {UserId} not found. Cannot send notification email.", winner.Id);
-                return;
+                // FIX: Use winner.UserId instead of winner.Id (which is Purchase ID)
+                var user = await _userRepository.GetUserByIdAsync(winner.UserId);
+                if (user == null)
+                {
+                    _logger.LogWarning("User with ID {UserId} not found. Cannot send notification email.", winner.UserId);
+                    return;
+                }
+
+                var recipientEmail = user.Email;
+                if (string.IsNullOrEmpty(recipientEmail))
+                {
+                    _logger.LogWarning("User with ID {UserId} has no email address. Cannot send notification email.", winner.UserId);
+                    return;
+                }
+
+                // Get gift details to include in email
+                var gift = await _giftRepository.GetGiftByIdAsync(winner.GiftId);
+                if (gift == null)
+                {
+                    _logger.LogWarning("Gift with ID {GiftId} not found. Cannot send notification email.", winner.GiftId);
+                    return;
+                }
+
+                // Get donor details
+                var donor = await _donorRepository.GetDonorByIdAsync(gift.DonorId);
+                string donorName = donor != null ? donor.First_name : "Anonymous";
+
+                // Send beautiful HTML email with gift details
+                await _emailService.SendLotteryWinnerEmailAsync(
+                    recipientEmail,
+                    user.First_name,
+                    gift.Name,
+                    gift.Description,
+                    gift.Value,
+                    donorName
+                );
             }
-            var recipientEmail = user.Email;
-            if (!string.IsNullOrEmpty(recipientEmail))
+            catch (Exception ex)
             {
-                string subject = "עדכון לגבי ההגרלה";
-                string message = "ברכותינו! עליית בגורל כזוכה עבור המתנה המבוקשת.";
-                await _emailService.SendEmailAsync(recipientEmail, subject, message);
+                _logger.LogError(ex, "Error sending notification email for winner with Purchase ID {PurchaseId}", winner.Id);
             }
         }
 
