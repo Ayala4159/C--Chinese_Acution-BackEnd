@@ -22,9 +22,6 @@ namespace ChineseAuction.Dtos
         public GetCategoryDto? Category { get; set; }
         [Required]
         public bool Is_lottery { get; set; }
-        [Required]
-        public bool Is_approved { get; set; } = false;
-
     }
     public class CreateGiftDto
     {
@@ -42,19 +39,10 @@ namespace ChineseAuction.Dtos
         public int CategoryId { get; set; }
         [Required]
         public bool Is_lottery { get; set; }
-        [Required]
-        public bool Is_approved { get; set; } = false;
     }
     public class UserUpdateGiftDto
     {
         [Required]
         public int Purchases_quantity { get; set; }
-    }
-    public class ApproveGiftDto
-    {
-        [Required]
-        public int Id { get; set; }
-        [Required]
-        public bool Is_approved { get; set; } = false;
     }
 }

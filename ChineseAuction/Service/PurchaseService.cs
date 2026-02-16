@@ -52,7 +52,10 @@ namespace ChineseAuction.Service
         public async Task<IEnumerable<GetPurchaseDto>> AddPurchaseAsync(List<CreatePurchaseDto> purchaseDtos)
         {
             var uniqueGroupId = Guid.NewGuid().ToString();
-
+            foreach (var purchaseDto in purchaseDtos)
+            {
+                await _giftRepository.UpdateGiftPurchasesQuantityAsync(purchaseDto.GiftId);
+            }
             var purchases = purchaseDtos.Select(dto =>
             {
                 var purchase = _mapper.Map<Purchase>(dto);
@@ -63,26 +66,6 @@ namespace ChineseAuction.Service
             }).ToList();
             var savedPurchases = await _purchaseRepository.AddPurchasesRangeAsync(purchases);
             return _mapper.Map<IEnumerable<GetPurchaseDto>>(savedPurchases);
-        }
-
-        // update purchase - manager
-        public async Task<GetPurchaseDto?> UpdatePurchaseAsync(int id, UpdatePurchaseDto purchase)
-        {
-            var existingPurchase = await _purchaseRepository.GetPurchaseByIdAsync(id);
-            if (existingPurchase == null)
-            {
-                _logger.LogWarning($"Purchase with ID {id} not found for update.");
-                return null;
-            }
-            _mapper.Map(purchase, existingPurchase);
-            existingPurchase.Id = id;
-            var updatedPurches = await _purchaseRepository.UpdatePurchaseAsync(existingPurchase);
-            if (updatedPurches == null)
-            {
-                _logger.LogError($"Failed to update Purchase with ID {id}.");
-                return null;
-            }
-            return _mapper.Map<GetPurchaseDto>(updatedPurches);
         }
 
         // get purchases by user id - manager
@@ -130,18 +113,25 @@ namespace ChineseAuction.Service
         // lottory function
         public async Task<GetPurchaseDto?> Lottory(int giftId)
         {
+            var gift=await _giftRepository.GetGiftByIdAsync(giftId);
+            if (gift == null)
+                throw new KeyNotFoundException("לא נמצאה מתנה");
+            if (gift.Is_lottery) {
+                throw new InvalidOperationException("הגרלה כבר בוצעה עבור מתנה זו");
+            }
             IEnumerable<Purchase> allPurchases = await _purchaseRepository.GetPurchasesByGiftIdAsync(giftId);
             if (allPurchases == null || !allPurchases.Any())
             {
                 _logger.LogWarning($"No purchases found for Gift ID {giftId} to conduct lottery.");
                 return null;
             }
-
+            
             var random = new Random();
             var allPurchasesList = allPurchases.ToList();
             var winner = allPurchasesList[random.Next(allPurchasesList.Count)];
             var winnerDto = _mapper.Map<GetPurchaseDto>(winner);
             winner.IsWon = true;
+            await _giftRepository.UpdateGiftLotteryAsync(giftId);
             await _purchaseRepository.UpdatePurchaseAsync(winner);
             await SendNotificationEmail(winnerDto);
 
@@ -210,6 +200,14 @@ namespace ChineseAuction.Service
                     .OrderByDescending(p => p.Gift!.Purchases_quantity);
 
             return _mapper.Map<IEnumerable<GetPurchaseDto>>(purchases);
+        }
+
+        // get total revenue from all unique package transactions
+        public async Task<int> GetTotalRevenueAsync()
+        {
+                var totalRevenue = await _purchaseRepository.GetTotalRevenueAsync();
+                _logger.LogInformation("Total revenue calculated successfully: {TotalRevenue}", totalRevenue);
+                return totalRevenue;
         }
     }
 }

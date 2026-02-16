@@ -11,5 +11,7 @@ namespace ChineseAuction.Repositoreis
         Task<IEnumerable<Purchase>> GetPurchasesByUserIdAsync(int userId);
         Task<Purchase?> GetWinnerByGiftIdAsync(int giftId);
         Task<Purchase?> UpdatePurchaseAsync(Purchase purchase);
+        Task<int> GetTotalRevenueAsync();
+
     }
 }

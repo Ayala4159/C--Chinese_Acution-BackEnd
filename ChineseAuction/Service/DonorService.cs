@@ -95,6 +95,10 @@ namespace ChineseAuction.Service
                 _logger.LogWarning("Attempt to delete non-existing donor with id: {DonorId}", id);
                 return false;
             }
+            if (existingDonor.Donations.Any() || existingDonor.Donations.Count > 0)
+            {
+                throw new InvalidOperationException("לא ניתן למחוק תורם שיש לו מתנות");
+            }
             await _donorRepository.DeleteDonorAsync(id);
             return true;
         }

@@ -14,7 +14,7 @@ namespace ChineseAuction.Models
         public string? Details { get; set; }
         public string Picture { get; set; }=string.Empty;
         [Required]
-        public int Value { get; set; }
+        public int Value { get; set; } = 10;
         [Required]
         public int DonorId { get; set; }
         [Required, ForeignKey("DonorId")]
@@ -27,7 +27,5 @@ namespace ChineseAuction.Models
         public ICollection<Purchase> Purchase { get; set; } = new List<Purchase>();
         [Required]
         public bool Is_lottery { get; set; } = false;
-        [Required]
-        public bool Is_approved { get; set; } = false;
     }
 }

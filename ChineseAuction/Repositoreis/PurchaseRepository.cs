@@ -38,7 +38,7 @@ namespace ChineseAuction.Repositoreis
         {
             var existing = await _context.Purchases.FindAsync(purchase.Id);
             if (existing == null) return null;
-            _context.Entry(existing).CurrentValues.SetValues(purchase);
+            existing.IsWon = true;
             await _context.SaveChangesAsync();
             return existing;
         }
@@ -59,6 +59,21 @@ namespace ChineseAuction.Repositoreis
         {
             return await _context.Purchases
                 .FirstOrDefaultAsync(p => p.GiftId == giftId && p.IsWon);
+        }
+
+        // get total revenue from unique package transactions - manager
+        public async Task<int> GetTotalRevenueAsync()
+        {
+            var totalRevenue = await _context.Purchases
+                .Select(p => new { p.PackageId, p.UniquePackageId })
+                .Distinct()
+                .Join(_context.Packages,
+                    purchase => purchase.PackageId,
+                    package => package.Id,
+                    (purchase, package) => package.Price)
+                .SumAsync();
+
+            return totalRevenue;
         }
     }
 }

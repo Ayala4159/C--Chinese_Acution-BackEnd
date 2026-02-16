@@ -95,11 +95,27 @@ namespace Chinese_Auction.Controllers
         [HttpPost("lottery/{giftId}")]
         public async Task<IActionResult> RunLottery(int giftId)
         {
-            _logger.LogInformation("Starting lottery for gift id: {GiftId}", giftId);
-            var winner = await _purchaseService.Lottory(giftId);
-            if (winner == null) return BadRequest("No participants for this gift or lottery failed.");
-            _logger.LogInformation("Lottery for gift id: {GiftId} completed successfully", giftId);
-            return Ok(winner);
+            try
+            {
+                _logger.LogInformation("Starting lottery for gift id: {GiftId}", giftId);
+                var winner = await _purchaseService.Lottory(giftId);
+                if (winner == null) return BadRequest("No participants for this gift or lottery failed.");
+                _logger.LogInformation("Lottery for gift id: {GiftId} completed successfully", giftId);
+                return Ok(winner);
+            }
+
+            catch (KeyNotFoundException)
+            {
+                return NotFound(new { message = "לא נמצאה במערכת מתנה" });
+            }
+            catch (InvalidOperationException)
+            {
+                return BadRequest(new { message = "הגרלה כבר בוצעה עבור מתנה " });
+            }
+            catch (Exception)
+            {
+                return BadRequest(new { message = "לא נמצאו משתתפים להגרלה עבור מתנה " });
+            }
         }
 
 
@@ -130,6 +146,25 @@ namespace Chinese_Auction.Controllers
             {
                 _logger.LogError(ex, "Error occurred while getting sorted purchases.");
                 return BadRequest("Internal server error occurred");
+            }
+        }
+
+        // Get total revenue from all unique package transactions
+        [Authorize(Roles = "manager")]
+        [HttpGet("revenue/total")]
+        public async Task<IActionResult> GetTotalRevenue()
+        {
+            _logger.LogInformation("Starting to calculate total revenue from unique package transactions");
+            try
+            {
+                var totalRevenue = await _purchaseService.GetTotalRevenueAsync();
+                _logger.LogInformation("Total revenue retrieved successfully: {TotalRevenue}", totalRevenue);
+                return Ok(new { totalRevenue });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while calculating total revenue.");
+                return BadRequest(new { message = ex.Message });
             }
         }
     }

@@ -128,6 +128,10 @@ namespace ChineseAuction.Controllers
                 _logger.LogInformation("Deleted donor with id: {Id} successfully", id);
                 return NoContent();
             }
+            catch (InvalidOperationException)
+            {
+                return BadRequest(new { message = "לא ניתן למחוק תורם שכבר תרם מתנות" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while deleting donor with id: {Id}", id);

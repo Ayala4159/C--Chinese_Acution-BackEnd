@@ -18,16 +18,9 @@ namespace ChineseAuction.Service
         }
 
         //get all approved gifts
-        public async Task<IEnumerable<GetGiftDto>> GetAllApprovedGiftsAsync()
+        public async Task<IEnumerable<GetGiftDto>> GetAllGiftsAsync()
         {
-            var gifts = await _giftRepository.GetAllApprovedGiftsAsync();
-            return _mapper.Map<IEnumerable<GetGiftDto>>(gifts);
-        }
-
-        //get all none approved gifts
-        public async Task<IEnumerable<GetGiftDto>> GetAllUnapprovedGiftsAsync()
-        {
-            var gifts = await _giftRepository.GetAllUnapprovedGiftsAsync();
+            var gifts = await _giftRepository.GetAllGiftsAsync();
             return _mapper.Map<IEnumerable<GetGiftDto>>(gifts);
         }
 
@@ -59,6 +52,10 @@ namespace ChineseAuction.Service
             { 
                 _logger.LogWarning("Gift with id {GiftId} not found for update.", id);
                 return null;
+            }
+            if (existingGift.Purchase.Any())
+            {
+                throw new InvalidOperationException("לא ניתן לערוך מתנה שיש לה רכישות");
             }
             _mapper.Map(giftDto, existingGift);
             existingGift.Id = id;
@@ -98,21 +95,12 @@ namespace ChineseAuction.Service
                 _logger.LogWarning("Gift with id {GiftId} not found for deletion.", id);
                 return false;
             }
+            if (existingGift.Purchase.Any())
+            {
+                throw new InvalidOperationException("לא ניתן לערוך מתנה שיש לה רכישות");
+            }
             await _giftRepository.DeleteGiftAsync(id);
             return true;
-        }
-
-        //approve gift
-        public async Task<bool> UpdateApprovalStatusAsync(ApproveGiftDto gift)
-        {
-            var existingGift = await _giftRepository.GetGiftByIdAsync(gift.Id);
-            if (existingGift == null)
-            {
-                _logger.LogWarning("Gift with id {GiftId} not found for approval status update.", gift.Id);
-                return false;
-            }
-            bool success = await _giftRepository.UpdateApprovalStatusAsync(gift.Id, gift.Is_approved);
-            return success;
         }
 
         //filter gifts
@@ -125,7 +113,7 @@ namespace ChineseAuction.Service
         // get sorted purchases
         public async Task<IEnumerable<GetPurchaseDto>> GetSortedGiftAsync(string sortBy)
         {
-            var gifts = await _giftRepository.GetAllApprovedGiftsAsync();
+            var gifts = await _giftRepository.GetAllGiftsAsync();
             if (sortBy == "value")
                 gifts =gifts.OrderByDescending(p => p.Value);
             else if (sortBy == "category")

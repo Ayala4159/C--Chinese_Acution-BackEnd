@@ -15,27 +15,19 @@ namespace ChineseAuction.Repositoreis
         // Methods for CRUD operations on Gift entity
 
         // get all approved gifts - everyOne
-        public async Task<IEnumerable<Gift>> GetAllApprovedGiftsAsync()
+        public async Task<IEnumerable<Gift>> GetAllGiftsAsync()
         {
             return await _context.Gifts.Include(g => g.Category)
-                .Where(g => g.Is_approved == true)
                 .Include(g => g.Donor)
-                .Include(g=>g.Category)
+                .Include(g => g.Category)
+                .Include(g => g.Purchase)
                 .ToListAsync();
         }
 
-        // get all not approved gifts - manager
-        public async Task<IEnumerable<Gift>> GetAllUnapprovedGiftsAsync()
-        {
-            return await _context.Gifts.Include(g => g.Category)
-                .Where(g => g.Is_approved == false)
-                .Include(g => g.Donor)
-                .ToListAsync();
-        }
         // get gift by id - everyOne
         public async Task<Gift?> GetGiftByIdAsync(int id)
         {
-            return await _context.Gifts.Include(g => g.Category).Include(g => g.Donor)
+            return await _context.Gifts.Include(g => g.Category).Include(g => g.Donor).Include(g => g.Purchase)
                 .FirstOrDefaultAsync(g => g.Id == id);
         }
 
@@ -53,6 +45,15 @@ namespace ChineseAuction.Repositoreis
             var existing = await _context.Gifts.FindAsync(gift.Id);
             if (existing == null) return null;
             _context.Entry(existing).CurrentValues.SetValues(gift);
+            await _context.SaveChangesAsync();
+            return existing;
+        }
+        // update gift lottery
+        public async Task<Gift?> UpdateGiftLotteryAsync(int giftId)
+        {
+            var existing = await _context.Gifts.FindAsync(giftId);
+            if (existing == null) return null;
+            existing.Is_lottery = true;
             await _context.SaveChangesAsync();
             return existing;
         }
@@ -96,15 +97,6 @@ namespace ChineseAuction.Repositoreis
                 .Include(g => g.Category)
                 .Include(g => g.Donor)
                 .ToListAsync();
-        }
-
-        // approve gift - manager
-        public async Task<bool> UpdateApprovalStatusAsync(int giftId, bool Is_approved)
-        {
-            int rowsAffected = await _context.Gifts
-                .Where(g => g.Id == giftId)
-                .ExecuteUpdateAsync(s => s.SetProperty(g => g.Is_approved, true));
-            return rowsAffected > 0;
         }
 
         // filter gifts by name, description, donor name - everyOne

@@ -25,21 +25,9 @@ namespace ChineseAuction.Controllers
         public async Task<IActionResult> GetAllApprovedGiftsAsync()
         {
             _logger.LogInformation("Starting to get all approved gifts");
-            var gifts = await _giftService.GetAllApprovedGiftsAsync();
+            var gifts = await _giftService.GetAllGiftsAsync();
             _logger.LogInformation("Got all approved gifts");
             return Ok(gifts);
-        }
-
-        // Get all unapproved gifts
-        [Authorize(Roles = "manager")]
-        [HttpGet("Unapproved")]
-        public async Task<IActionResult> GetNoneUnapprovedGifts()
-        {
-            _logger.LogInformation("Starting to get all unapproved gifts");
-            var gifts = await _giftService.GetAllUnapprovedGiftsAsync();
-            _logger.LogInformation("Got all unapproved gifts");
-            return Ok(gifts);
-
         }
 
         // get gift by id
@@ -106,6 +94,10 @@ namespace ChineseAuction.Controllers
                 _logger.LogInformation("Updated gift with id: {GiftId}", id);
                 return Ok(updatedGift);
             }
+            catch (InvalidOperationException)
+            {
+                return BadRequest("לא ניתן לערוך מתנה שיש לך רוכשים");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while updating gift with id: {GiftId}", id);
@@ -146,28 +138,13 @@ namespace ChineseAuction.Controllers
                 _logger.LogInformation("Deleted gift with id: {GiftId}", id);
                 return Ok("Gift with id:" + id + " has been deleted successfully🗑️");
             }
+            catch (InvalidOperationException)
+            {
+                return BadRequest("לא ניתן למחוק מתנה שיש לך רוכשים");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while deleting gift with id: {GiftId}", id);
-                return BadRequest(ex.Message);
-            }
-        }
-        // Update approval status
-        [Authorize(Roles = "manager")]
-        [HttpPut("approve")]
-        public async Task<IActionResult> UpdateApprovalStatus([FromBody] ApproveGiftDto gift)
-        {
-            _logger.LogInformation("Starting to update approval status for gift with id: {GiftId}", gift.Id);
-            try
-            {
-                var result = await _giftService.UpdateApprovalStatusAsync(gift);
-                if (!result) return NotFound("The id:" + gift.Id + " ,did not found🤚");
-                _logger.LogInformation("Updated approval status for gift with id: {GiftId}", gift.Id);
-                return Ok("Gift with id:" + gift.Id + " approval status has been updated successfully✅");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while updating approval status for gift with id: {GiftId}", gift.Id);
                 return BadRequest(ex.Message);
             }
         }

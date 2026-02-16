@@ -44,38 +44,5 @@ namespace ChineseAuction.Service
             await _packageRepository.AddPackageAsync(package);
             return _mapper.Map<GetPackageDto>(package);
         }
-
-        // update package
-        public async Task<GetPackageDto?> UpdatePackageAsync(int id, CreatePackageDto updatePackageDto)
-        {
-            var existingPackage = await _packageRepository.GetPackageByIdAsync(id);
-            if (existingPackage == null)
-            {
-                _logger.LogWarning("Package with id {PackageId} not found for update.", id);
-                return null;
-            }
-            _mapper.Map(updatePackageDto, existingPackage);
-            existingPackage.Id = id;
-            var updatedPackage = await _packageRepository.UpdatePackageAsync(existingPackage);
-            if (updatedPackage == null)
-            {
-                _logger.LogError("Failed to update package with id {PackageId}.", id);
-                return null;
-            }
-            return _mapper.Map<GetPackageDto>(updatedPackage);
-        }
-
-        // delete package
-        public async Task<bool> DeletePackageAsync(int id)
-        {
-            var existingPackage = await _packageRepository.GetPackageByIdAsync(id);
-            if (existingPackage == null)
-            {
-                _logger.LogWarning("Package with id {PackageId} not found for deletion.", id);
-                return false;
-            }
-            await _packageRepository.DeletePackageAsync(id);
-            return true;
-        }
     }
 }

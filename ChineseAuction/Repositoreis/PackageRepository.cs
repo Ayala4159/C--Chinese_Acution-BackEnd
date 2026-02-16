@@ -32,28 +32,5 @@ namespace ChineseAuction.Repositoreis
             _context.Packages.Add(package);
             await _context.SaveChangesAsync();
         }
-
-        // update package -manager
-        public async Task<Package?> UpdatePackageAsync(Package package)
-        {
-            var existing = await _context.Packages.FindAsync(package.Id);
-            if (existing == null) { return null; }
-            existing.Name = package.Name;
-            existing.Description = package.Description;
-            existing.Price = package.Price;
-            await _context.SaveChangesAsync();
-            return existing;
-        }
-
-        // delete package -manager
-        public async Task DeletePackageAsync(int id)
-        {
-            var package = await _context.Packages.FindAsync(id);
-            if (package != null)
-            {
-                _context.Packages.Remove(package);
-                await _context.SaveChangesAsync();
-            }
-        }
     }
 }
