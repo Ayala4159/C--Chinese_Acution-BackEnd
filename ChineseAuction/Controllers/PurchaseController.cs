@@ -21,7 +21,7 @@ namespace Chinese_Auction.Controllers
         }
 
         // get all purchases
-        [Authorize(Roles = "Manager")]
+        [Authorize(Roles = "manager")]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Purchase>>> GetAllPurchases()
         {

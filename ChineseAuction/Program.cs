@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using StoreApi.Middleware;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -140,5 +141,6 @@ app.UseStaticFiles();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiting();
 app.MapControllers();
 app.Run();

@@ -16,7 +16,7 @@ namespace ChineseAuction.Repositoreis
         // get all purchases - manager
         public async Task<IEnumerable<Purchase>> GetAllPurchasesAsync()
         {
-            return await _context.Purchases.Include(p => p.Gift).ToListAsync();
+            return await _context.Purchases.Include(p => p.Gift).Include(p=>p.User).Include(P=>P.Package).ToListAsync();
         }
 
         // get purchase by id - manager
